@@ -7,8 +7,8 @@ export const playerExist = (data: PlayerType) => {
     return database.get(data.name);
 }
 
-export const createPlayer = (data: PlayerType) => {
-    const index = database.create(data)
+export const createPlayer = (data: PlayerType, index: number) => {
+    database.create(data, index)
     return createResponse(data, false, index);
 }
 
