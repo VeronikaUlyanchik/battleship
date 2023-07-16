@@ -1,3 +1,4 @@
+import { addGame } from "../../handlers/games/games.helper";
 import { database } from "../../db_server/db.server";
 import { createResponseUpdateRoom, updateRoom } from "./rooms.helper";
 import { RoomsRequestType } from "./rooms.types";
@@ -14,16 +15,23 @@ export const requestRoomsHandler = (message: RoomsRequestType, clientIndex: numb
             if(rooms.find((r)=> r.player1 === clientIndex || r.player2 === clientIndex)){
                 return;
             }
+
+            const emptyRoom = rooms.find((r)=> r.player1 !== clientIndex || r.player2 === null);
+
+            if(emptyRoom){
+                return createResponseUpdateRoom(emptyRoom.index, currentPlayer);
+            }
             
             const index = database.createRoom(clientIndex);
             return createResponseUpdateRoom(index, currentPlayer);
 
-            case 'add_user_to_room':
+        case 'add_user_to_room':
             const data = JSON.parse(message.data);
 
             updateRoom(data.indexRoom, clientIndex);
+            addGame(data.indexRoom)
             
-            return {type: 'createGameEvent', roomId: data.indexRoom};
+            return { type: 'createGameEvent', roomId: data.indexRoom };
         default: 
         break
     }

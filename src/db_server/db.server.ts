@@ -1,12 +1,16 @@
 import { RoomType } from "../handlers/rooms/rooms.types";
 import { PlayerType } from "../handlers/players/players.types";
+import { GameType } from "../handlers/games/games.types";
+import { ShipsPositionsType, ShipsType } from "../handlers/ships/ships.types";
 
 type DatabaseType = {
     players: (PlayerType & { index: number })[],
     rooms: (RoomType & { index: number })[],
+    ships: ShipsType[],
+    games: GameType[],
 }
 
-const local_database: DatabaseType = {players: [], rooms: []};
+const local_database: DatabaseType = {players: [], rooms: [], games:[], ships: []};
 
 class Database {
     getAll(){
@@ -37,7 +41,39 @@ class Database {
         return local_database.rooms;
     }
     getRoomById(index: number){
-        return local_database.rooms.find((r)=> r.index !== index);
+        return local_database.rooms.find((r)=> r.index === index);
+    }
+    createGame(roomIndex: number){
+        local_database.games.push({
+            roomIndex,
+            readyPlayers: [],
+        })
+        return roomIndex;
+    }
+    deleteGame(roomIndex: number){
+        local_database.games = local_database.games.filter((g)=> g.roomIndex !== roomIndex);
+    }
+    updateGame(roomIndex: number, currentPlayerIndex: number){
+        local_database.games = local_database.games.map((g)=> g.roomIndex === roomIndex 
+        ? {...g, readyPlayers: [...g.readyPlayers, currentPlayerIndex]} : g);
+    }
+    getGameByRoomId(roomIndex: number){
+        return local_database.games.find((game)=> game.roomIndex === roomIndex);
+    }
+    addShips(gameId: number, ships: ShipsPositionsType[], currentPlayerIndex: number){
+        local_database.ships.push({
+            gameId,
+            ships,
+            playerId: currentPlayerIndex,
+        })
+    }
+    getShips(gameId: number, currentPlayerIndex: number) {
+        return local_database.ships.find((s)=> s.gameId === gameId && s.playerId === currentPlayerIndex);
+    }
+
+    listShips() {
+        console.log(local_database.games, 'games')
+        return local_database.ships;
     }
 }
 

@@ -1,6 +1,8 @@
 import { database } from "../../db_server/db.server";
 import { PlayerType } from "./players.types";
 
+export const playersRequestTypes = ['reg'];
+
 export const list = () => database.getAll();
 
 export const playerExist = (data: PlayerType) => {

@@ -1,3 +1,4 @@
+import { addGame } from "../../handlers/games/games.helper";
 import { database } from "../../db_server/db.server";
 import { PlayerType } from "../../handlers/players/players.types";
 
@@ -34,7 +35,7 @@ export const createResponseCreateGame = (roomIndex: number, idPlayer: number) =>
 export const updateRoom = (roomIndex: number, clientIndex: number) =>  {
     const room = database.getRoomById(roomIndex);
 
-    if (room.player1 === clientIndex) {
+    if (room?.player1 === clientIndex) {
         return 'already in game';
     }
     database.updateRoom(clientIndex, roomIndex);
@@ -42,6 +43,5 @@ export const updateRoom = (roomIndex: number, clientIndex: number) =>  {
 
 export const createGame = (roomIndex: number, idPlayer: number) => {
     database.deleteRoom(roomIndex);
-
     return createResponseCreateGame(roomIndex, idPlayer)
 }
