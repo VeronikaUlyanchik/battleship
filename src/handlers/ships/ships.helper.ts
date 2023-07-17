@@ -1,3 +1,4 @@
+import { changeTurn } from "../../handlers/games/games.helper";
 import { database } from "../../db_server/db.server";
 import { ShipsPositionsType } from "./ships.types";
 
@@ -21,6 +22,6 @@ export const addShipsToPlayer = (ships: ShipsPositionsType[], currentPlayerIndex
 
 export const startGameEventHandler = (clientIndex: number, gameId: number) => {
     const ships = database.getShips(gameId, clientIndex);
-    console.log(database.listShips());
-    return createShipsResponse(ships?.ships, clientIndex);
+
+    return [createShipsResponse(ships?.ships, clientIndex), changeTurn(gameId)];
 }

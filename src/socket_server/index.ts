@@ -6,6 +6,8 @@ import { WebSocket } from "ws";
 import { shipsRequestTypes, startGameEventHandler } from "../handlers/ships/ships.helper";
 import { playersRequestTypes } from "../handlers/players/players.helper";
 import { requestShipsHandler } from "../handlers/ships/ships.handler";
+import { gamesRequestTypes } from "../handlers/games/games.helper";
+import { requestGamesHandler } from "../handlers/games/games.handler";
 
 type Client = {
   id: number,
@@ -18,10 +20,6 @@ export const socketServer = new WebSocket.Server({port:3000});
 const clients: Client[] = [];
 
 socketServer.on('connection', function open(ws) {
-  ws.onclose = function(){
-    ws = null
-    setTimeout(ws.ping, 5000)
-  }
 
   ws.on('error', function(error) {
     console.log('Cannot start server');
@@ -65,17 +63,28 @@ socketServer.on('connection', function open(ws) {
 
         if(typeof response === 'object' && response.type === 'startGameEvent') {
           for(let client of clients) {
-            console.log('client', client.id);
-            client.ws.send(startGameEventHandler(client.id, response.gameId));
+            const res = startGameEventHandler(client.id, response.gameId)
+            client.ws.send(res[0]);
+            client.ws.send(res[1]);
           }
 
           return;
         }
       }
 
-        // console.log(database.getAll())
-        // console.log(message.toString())
-        console.log(clients.map((cl)=> cl.id))
-        console.log(database.listShips(), 'ships')
+      if(gamesRequestTypes.includes(receivedMessage.type)) {
+        const response = requestGamesHandler(receivedMessage, clientIndex);
+
+        if(Array.isArray(response)) {
+          for(let client of clients) {
+            client.ws.send(response[0]);
+            client.ws.send(response[1]);
+          }
+        } else {
+          for(let client of clients) {
+            client.ws.send(response);
+          }
+        }
+      }
     })
   });

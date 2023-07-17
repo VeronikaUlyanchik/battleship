@@ -47,6 +47,7 @@ class Database {
         local_database.games.push({
             roomIndex,
             readyPlayers: [],
+            turn: null,
         })
         return roomIndex;
     }
@@ -55,7 +56,11 @@ class Database {
     }
     updateGame(roomIndex: number, currentPlayerIndex: number){
         local_database.games = local_database.games.map((g)=> g.roomIndex === roomIndex 
-        ? {...g, readyPlayers: [...g.readyPlayers, currentPlayerIndex]} : g);
+        ? {...g, turn: g.turn === null ? currentPlayerIndex : g.turn, readyPlayers: [...g.readyPlayers, currentPlayerIndex]} : g);
+    }
+    updateGameTurn(roomIndex: number, currentPlayerIndex: number){
+        local_database.games = local_database.games.map((g)=> g.roomIndex === roomIndex 
+        ? {...g, turn: currentPlayerIndex } : g);
     }
     getGameByRoomId(roomIndex: number){
         return local_database.games.find((game)=> game.roomIndex === roomIndex);
@@ -70,9 +75,11 @@ class Database {
     getShips(gameId: number, currentPlayerIndex: number) {
         return local_database.ships.find((s)=> s.gameId === gameId && s.playerId === currentPlayerIndex);
     }
+    getRivalShips(gameId: number, currentPlayerIndex: number) {
+        return local_database.ships.find((s)=> s.gameId === gameId && s.playerId !== currentPlayerIndex);
+    }
 
     listShips() {
-        console.log(local_database.games, 'games')
         return local_database.ships;
     }
 }
