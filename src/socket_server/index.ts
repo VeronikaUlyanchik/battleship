@@ -25,6 +25,10 @@ socketServer.on('connection', function open(ws) {
     console.log('Cannot start server');
 });
 
+  ws.onerror = ((error)=> {
+    console.log(error.message);
+  })
+
     ws.on('message', (message)=> {
       const receivedMessage = JSON.parse(message.toString());
 
@@ -74,6 +78,9 @@ socketServer.on('connection', function open(ws) {
 
       if(gamesRequestTypes.includes(receivedMessage.type)) {
         const response = requestGamesHandler(receivedMessage, clientIndex);
+        if(!response) {
+          return;
+        }
 
         if(Array.isArray(response)) {
           for(let client of clients) {

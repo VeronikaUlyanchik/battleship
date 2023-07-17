@@ -1,7 +1,8 @@
 import { RoomType } from "../handlers/rooms/rooms.types";
 import { PlayerType } from "../handlers/players/players.types";
 import { GameType } from "../handlers/games/games.types";
-import { ShipsPositionsType, ShipsType } from "../handlers/ships/ships.types";
+import { ShipsPositionToCheckType, ShipsPositionsType, ShipsType } from "../handlers/ships/ships.types";
+import { findShipWithCoordinates } from "../handlers/games/games.helper";
 
 type DatabaseType = {
     players: (PlayerType & { index: number })[],
@@ -72,13 +73,25 @@ class Database {
             playerId: currentPlayerIndex,
         })
     }
+    updateShipsPosition(gameId: number, currentPlayerIndex: number, positionX:number, positionY: number, status: string ){
+        const ships = local_database.ships.find((s)=> s.gameId === gameId && s.playerId === currentPlayerIndex).ships;
+        const ship = findShipWithCoordinates(ships, positionX, positionY);
+
+        const pos = ship.ship.checkedPosition || [];
+        
+        const updatedShip = {...ship.ship, checkedPosition: [...pos, {x:positionX, y:positionY }], status} as ShipsPositionToCheckType;
+
+        local_database.ships = local_database.ships.map((s)=> s.gameId === gameId && s.playerId === currentPlayerIndex ?
+        {...s, ships: [...ships.filter((sh, i)=> i !== ship.index), updatedShip ]} :s);
+
+        return ships;
+    }
     getShips(gameId: number, currentPlayerIndex: number) {
         return local_database.ships.find((s)=> s.gameId === gameId && s.playerId === currentPlayerIndex);
     }
     getRivalShips(gameId: number, currentPlayerIndex: number) {
         return local_database.ships.find((s)=> s.gameId === gameId && s.playerId !== currentPlayerIndex);
     }
-
     listShips() {
         return local_database.ships;
     }

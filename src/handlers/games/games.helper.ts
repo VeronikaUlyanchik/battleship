@@ -1,7 +1,6 @@
-import { ShipsPositionsType } from "../../handlers/ships/ships.types";
+import { ShipsPositionToCheckType, ShipsPositionsType } from "../../handlers/ships/ships.types";
 import { database } from "../../db_server/db.server"
 import { AttackDataRequestType, StatusType } from "./games.types";
-import { json } from "stream/consumers";
 
 export const gamesRequestTypes = ['attack', 'randomAttack', ];
 
@@ -18,11 +17,11 @@ export const isPlayersReady = (roomIndex: number) => {
    return game.readyPlayers.length === 2;
 }
 
-const checkShot = (ships: ShipsPositionsType[], x: number, y: number): StatusType => {
+const checkShot = (ships: ShipsPositionToCheckType[], x: number, y: number): StatusType => {
         let result = "miss";
       
         for (const ship of ships) {
-          const { position, direction, length } = ship;
+          const { position, direction, length, checkedPosition, status } = ship;
       
           if (!direction) {
             for (let i = 0; i < length; i++) {
@@ -122,8 +121,18 @@ const turn = database.getGameByRoomId(roomId)?.turn;
 }
 
 export const checkAttackResult = (attack: AttackDataRequestType) => {
+    const turn = database.getGameByRoomId(attack.gameId)?.turn;
+
+    if(turn !== attack.indexPlayer) {
+        return null;
+    }
+
   const rival = database.getRivalShips(attack.gameId, attack.indexPlayer);
   const result = checkShot(rival.ships, attack.x, attack.y);
+
+  if(result !== 'miss') {
+    database.updateShipsPosition(attack.gameId, rival.playerId, attack.x, attack.y, result )
+  }
 
     if(result !== 'shot') {
         database.updateGameTurn(rival.gameId, rival.playerId);
@@ -132,3 +141,38 @@ export const checkAttackResult = (attack: AttackDataRequestType) => {
     
     return createAttackFeedback({x: attack.x, y: attack.y}, attack.indexPlayer, result);
 }
+
+const isCoordinateWithinShip = (ship: ShipsPositionToCheckType, x: number, y:number) => {
+    const { position, direction, length } = ship;
+  
+    if (direction === false) { 
+      if (y !== position.y) {
+        return false;
+      }
+      const endX = position.x + length - 1;
+      return x >= position.x && x <= endX;
+    } else { 
+      if (x !== position.x) {
+        return false;
+      }
+      const endY = position.y + length - 1;
+      return y >= position.y && y <= endY;
+    }
+  }
+  
+  export const findShipWithCoordinates = (ships: ShipsPositionToCheckType[], x: number, y:number) => {
+    for (let i = 0; i < ships.length; i++) {
+      const ship = ships[i];
+      if (isCoordinateWithinShip(ship, x, y)) {
+        return {ship, index: i};
+      }
+    }
+    return null; 
+  }
+  
+
+  
+  
+  
+  
+  

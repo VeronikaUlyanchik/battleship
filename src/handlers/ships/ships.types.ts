@@ -1,16 +1,25 @@
 export type ShipsPositionsType = {
     position: {
      x: number,
-     y: number },
-            direction: boolean,
-            length: number,
-            type: "small"|"medium"|"large"|"huge",
+     y: number 
+    },
+    direction: boolean,
+    length: number,
+    type: "small"|"medium"|"large"|"huge",
+}
+
+export type ShipsPositionToCheckType = ShipsPositionsType & {
+    checkedPosition?: {
+        x: number,
+        y: number 
+    }[],
+    status?: 'killed' | 'shot'
 }
 
 export type ShipsType = {
     gameId: number,
     playerId: number,
-    ships: ShipsPositionsType[],
+    ships: ShipsPositionToCheckType[],
 }
 
 export type AddShipsRequestType = {
